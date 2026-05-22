@@ -841,6 +841,7 @@
 </footer>
 
 <script>
+  if (location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
   (function(){
     function revealAll(){
       document.querySelectorAll('.anim').forEach(el=>{
