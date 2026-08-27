@@ -101,7 +101,10 @@
 
   .hero-right{position:relative}
   .hero-photo{position:relative;height:100%;min-height:520px;
-    background:var(--cobalt);overflow:hidden;border:2px solid var(--ink)}
+    background:var(--cobalt);overflow:hidden;border:2px solid var(--ink);
+    transition:all .45s cubic-bezier(.34,1.56,.64,1)}
+  .hero-photo:hover{border-color:rgba(123,47,247,.6);
+    box-shadow:0 0 40px rgba(123,47,247,.25)}
   .ghost{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     font-family:'Bricolage Grotesque';font-weight:800;
     font-size:clamp(90px,15vw,200px);color:rgba(255,255,255,.16);
@@ -111,12 +114,8 @@
     top:8%;left:-6%;z-index:0;user-select:none}
   .avatar-slot{position:absolute;z-index:3;inset:0;
     display:flex;align-items:center;justify-content:center;overflow:hidden;
-    border:3px solid rgba(255,255,255,.08);border-radius:12px;
-    background:rgba(0,0,0,.15);backdrop-filter:blur(2px);
     transition:all .45s cubic-bezier(.34,1.56,.64,1)}
-  .avatar-slot:hover{border-color:rgba(123,47,247,.6);
-    box-shadow:0 0 40px rgba(123,47,247,.25),inset 0 0 30px rgba(123,47,247,.08);
-    transform:scale(1.02)}
+  .avatar-slot:hover{transform:scale(1.02)}
   .avatar-slot img{height:90%;width:90%;object-fit:contain;
     filter:drop-shadow(0 8px 20px rgba(0,0,0,.35));
     transition:all .45s cubic-bezier(.34,1.56,.64,1)}
