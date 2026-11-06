@@ -1724,10 +1724,11 @@
   var linesEl=$('#bootLines'),bar=$('#bootBar'),bi=0,done=false;
   function finish(){
     if(done)return;done=true;
-    boot.classList.add('out');d.body.style.overflow='';
-    setTimeout(function(){boot.remove()},850);
+    if(boot){boot.classList.add('out');setTimeout(function(){boot.remove()},850);}
+    d.body.style.overflow='';
     afterBoot();
   }
+  if(!linesEl||!bar){finish();return}
   (function step(){
     if(done)return;
     if(bi<bl.length){var e=d.createElement('div');e.className='boot-l';e.innerHTML=bl[bi++];linesEl.appendChild(e);
