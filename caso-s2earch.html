@@ -4,144 +4,188 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Caso: Ad-Fraud Takedown — Delfin</title>
-<meta name="description" content="Investigación OSINT que desmanteló una red de fraude publicitario de 17+ sitios: rastreo de infraestructura, reversing y entity resolution.">
+<meta name="description" content="Investigación OSINT que desmanteló una red de fraude publicitario de 17+ sitios.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%237b2ff7'/><text x='50' y='72' font-size='64' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%23ffd23f'>d.</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;700&family=Caveat:wght@600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#060a1c;--card:#0b1230;--cobalt:#3552ff;--purple:#7b2ff7;--yellow:#ffd23f;--ink:#e6eaff;--dim:#98a2c9;--line:#1c2550;--grid:rgba(120,140,255,.06);--green:#4be39b}
+  :root{--cobalt:#1f3df0;--cobalt-d:#1730b8;--purple:#7b2ff7;--purple-d:#5a1fc0;--sky:#dce6ff;--sky-soft:#eef3ff;--ink:#0c1330;--paper:#fff;--dim:#5b6280;--yellow:#ffd23f}
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{background:
-      radial-gradient(1200px 600px at 50% -10%, #14205a 0%, transparent 55%),
-      linear-gradient(var(--grid) 1px,transparent 1px) 0 0/44px 44px,
-      linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/44px 44px, var(--paper);
-    color:var(--ink);font-family:"Space Grotesk",sans-serif;line-height:1.6;
-    -webkit-font-smoothing:antialiased}
-  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+  body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;position:relative}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(31,61,240,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(31,61,240,.045) 1px,transparent 1px);background-size:46px 46px}
+  ::selection{background:var(--purple);color:#fff}
+  img{display:block;max-width:100%}
   a{color:var(--cobalt);text-decoration:none}
-  .top{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--line);margin-bottom:40px}
-  .back{font-family:"JetBrains Mono",monospace;font-size:14px;color:var(--dim);display:inline-flex;gap:8px;align-items:center}
-  .back:hover{color:var(--ink)}
-  .tagline{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--cobalt);letter-spacing:2px;text-transform:uppercase}
-  h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-1px;margin:14px 0 10px}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 32px;position:relative;z-index:2}
+  .display{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;line-height:.95;letter-spacing:-.02em}
+  .mono{font-family:'JetBrains Mono',monospace}
+  /* top bar */
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:2px solid var(--ink);margin-bottom:46px}
+  .btn{padding:11px 20px;font-weight:700;font-size:13px;letter-spacing:.03em;border:2px solid var(--ink);
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;background:transparent;color:var(--ink);transition:transform .16s,box-shadow .16s,background .16s,color .16s}
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--purple)}
+  .btn.solid{background:var(--ink);color:#fff}
+  .btn.solid:hover{background:var(--purple);border-color:var(--purple);box-shadow:4px 4px 0 var(--ink)}
+  .mono-tag{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cobalt)}
+  /* hero */
+  .kicker{font-family:'Caveat',cursive;font-size:32px;color:var(--purple);transform:rotate(-3deg);margin-bottom:-2px}
+  h1{font-size:clamp(42px,8vw,78px);margin:6px 0 10px}
   h1 em{color:var(--purple);font-style:normal}
-  .lead{font-size:clamp(17px,2.4vw,21px);color:#c3cdf0;max-width:720px}
-  .hero-img{width:100%;border:1px solid var(--line);border-radius:14px;margin:34px 0;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 10px}
-  .pill{font-family:"JetBrains Mono",monospace;font-size:13px;background:#142053;color:#a9b8ff;border:1px solid #27316a;border-radius:999px;padding:6px 14px}
-  h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:28px;margin:48px 0 14px;display:flex;align-items:baseline;gap:12px}
-  h2 .n{font-family:"JetBrains Mono",monospace;font-size:15px;color:var(--purple)}
-  p{margin:12px 0;color:#cdd5f2}
+  .lead{max-width:680px;color:var(--dim);font-size:17px;line-height:1.8}
+  .lead b{color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 10px}
+  .chip{border:1.5px solid var(--purple);color:var(--purple-d);padding:6px 13px;font-size:11px;font-weight:700;letter-spacing:.04em;border-radius:30px}
+  /* window component */
+  .win{border:2px solid var(--cobalt);background:#fff;box-shadow:5px 5px 0 rgba(123,47,247,.18);margin:36px 0}
+  .win-bar{background:var(--cobalt);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:6px 12px}
+  .win-bar .name{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;letter-spacing:.06em}
+  .win-bar .dots i{width:11px;height:11px;border:1.5px solid #fff;display:inline-block;margin-left:5px}
+  .win img{width:100%;display:block}
+  /* sections */
+  section{padding:44px 0 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px}
+  .sec-num{font-family:'Bricolage Grotesque';font-weight:800;font-size:14px;background:var(--purple);color:#fff;padding:3px 9px}
+  .sec-title{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:-.02em}
+  p{margin:12px 0;color:var(--dim);font-size:15px;line-height:1.8}
+  p b,li b{color:var(--ink)}
   .muted{color:var(--dim)}
-  ul{margin:12px 0 12px 4px;list-style:none}
-  li{padding:7px 0 7px 26px;position:relative;color:#cdd5f2}
-  li::before{content:"▹";position:absolute;left:0;color:var(--cobalt)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0}
-  .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
-  .box.accent{border-left:4px solid var(--cobalt)}
-  .box.y{border-left:4px solid var(--yellow)}
-  .box.g{border-left:4px solid var(--green)}
-  .box h3{font-size:16px;font-family:"JetBrains Mono",monospace;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  figure{margin:26px 0}
-  figure img{width:100%;border:1px solid var(--line);border-radius:12px;display:block}
-  figcaption{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--dim);margin-top:8px}
-  .skills{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
-  .skill{font-family:"JetBrains Mono",monospace;font-size:14px;background:linear-gradient(180deg,#141e52,#0e1640);border:1px solid #27316a;border-radius:8px;padding:8px 14px}
-  .skill b{color:var(--yellow)}
-  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0}
-  .kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;text-align:center}
-  .kpi .v{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:30px;color:var(--cobalt)}
-  .kpi .k{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--dim);margin-top:4px}
-  .disc{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--dim);border-top:1px solid var(--line);margin-top:50px;padding:22px 0 60px;line-height:1.7}
-  @media(max-width:720px){.grid2,.kpi{grid-template-columns:1fr 1fr}}
-  @media(max-width:480px){.kpi{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+  ul{margin:10px 0;list-style:none}
+  li{padding:8px 0 8px 24px;position:relative;color:var(--dim);font-size:15px;line-height:1.7}
+  li::before{content:"▹";position:absolute;left:0;color:var(--cobalt);font-weight:700}
+  /* kpi (stat-mini style) */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:26px 0}
+  .kpi{border:2px solid var(--ink);padding:16px 18px}
+  .kpi .n{font-family:'Bricolage Grotesque';font-weight:800;font-size:38px;color:var(--purple);line-height:1}
+  .kpi .l{font-size:11px;color:var(--dim);letter-spacing:.06em;margin-top:6px}
+  /* method grid */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  .mbox{border:2px solid var(--ink);padding:18px 20px;background:#fff}
+  .mbox h3{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cobalt);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .mbox p{margin:0;font-size:14px}
+  /* highlight box */
+  .hl{border:2px solid var(--ink);padding:16px 20px;margin:14px 0;background:var(--sky-soft)}
+  .hl.y{background:#fffbe8;border-color:var(--ink)}
+  .hl .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 8px;margin-bottom:8px}
+  .hl .tag.ok{background:var(--purple);color:#fff}
+  .hl .tag.wn{background:var(--yellow);color:var(--ink)}
+  .hl p{margin:0;color:var(--ink)}
+  /* skills */
+  .skills{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+  .skill{border:2px solid var(--ink);padding:9px 15px;font-size:13px;font-weight:700}
+  .skill b{color:var(--purple)}
+  figcaption{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);margin-top:-26px;margin-bottom:36px}
+  .disc{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--dim);border-top:2px solid var(--ink);margin-top:56px;padding:22px 0 64px;line-height:1.75}
+  @media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <a class="back" href="index.html">← volver al portafolio</a>
-    <span class="tagline">Case study · OSINT</span>
+  <div class="topbar">
+    <a class="btn" href="index.html">← VOLVER</a>
+    <span class="mono-tag">CASE STUDY · OSINT</span>
   </div>
 
-  <span class="tagline">Investigación de fraude · Threat Intelligence</span>
-  <h1>Desmantelando una red de <em>ad-fraud</em></h1>
+  <div class="kicker">un caso real ✦</div>
+  <h1 class="display">Ad-Fraud <em>Takedown</em></h1>
   <p class="lead">Un anuncio de YouTube que prometía "ganar dinero viendo videos" terminó
-  destapando una operación de arbitraje publicitario de <strong>17+ sitios en 10 idiomas</strong>.
-  Rastreo de infraestructura, ingeniería inversa y <em>entity resolution</em> hasta la empresa
-  que lo financia — todo con fuentes públicas.</p>
-
-  <div class="meta-row">
-    <span class="pill">OSINT</span><span class="pill">Threat Intel</span>
-    <span class="pill">Ad-Fraud / MFA</span><span class="pill">Entity Resolution</span>
-    <span class="pill">OPSEC · Tor</span>
+  destapando una operación de arbitraje publicitario de <b>17+ sitios en 10 idiomas</b>.
+  Rastreo de infraestructura, ingeniería inversa y <b>entity resolution</b> hasta la empresa
+  que la financia — todo con fuentes públicas.</p>
+  <div class="chips">
+    <span class="chip">OSINT</span><span class="chip">THREAT INTEL</span>
+    <span class="chip">AD-FRAUD / MFA</span><span class="chip">ENTITY RESOLUTION</span>
+    <span class="chip">OPSEC · TOR</span>
   </div>
 
-  <img class="hero-img" src="assets/img/caso-s2earch.png" alt="Mapa de la operación de ad-fraud">
-
-  <div class="kpi">
-    <div><div class="v">17+</div><div class="k">sitios en la red</div></div>
-    <div><div class="v">~20K</div><div class="k">anuncios rastreados</div></div>
-    <div><div class="v">10</div><div class="k">idiomas objetivo</div></div>
-    <div><div class="v">1302</div><div class="k">reglas de cloaking</div></div>
+  <div class="win">
+    <div class="win-bar"><span class="name">mapa_operacion.svg</span><span class="dots"><i></i><i></i><i></i></span></div>
+    <img src="assets/img/caso-s2earch.png" alt="Mapa de la operación de ad-fraud">
   </div>
 
-  <h2><span class="n">01</span> El problema</h2>
-  <p>Un sitio (<span class="muted">s2earch.io</span>) se anunciaba como plataforma para
-  "ganar dinero viendo videos". No existía ningún mecanismo de pago: era una granja de
-  contenido <strong>Made-For-Advertising</strong> que compra tráfico con anuncios engañosos
-  y lo monetiza con Google AdSense. El usuario no gana — el usuario es el producto.</p>
-
-  <h2><span class="n">02</span> Método (OSINT · reconocimiento pasivo)</h2>
-  <div class="grid2">
-    <div class="box accent"><h3>Infraestructura</h3><p>WHOIS/RDAP, DNS, <strong>Certificate
-      Transparency</strong> y urlscan para mapear dominios hermanos y el backend del operador.</p></div>
-    <div class="box accent"><h3>Ingeniería inversa</h3><p>Análisis del <strong>wrapper de
-      anuncios ofuscado</strong>: endpoints de cloaking, detección de bots (Adscore) y las 1302 reglas.</p></div>
-    <div class="box accent"><h3>Ad Intelligence</h3><p><strong>Google Ads Transparency
-      Center</strong> para identificar al anunciante verificado y las campañas de video activas.</p></div>
-    <div class="box accent"><h3>Entity resolution</h3><p>Del dominio anónimo → anunciante
-      verificado → empresa registrada (registro mercantil público).</p></div>
+  <div class="kpis">
+    <div class="kpi"><div class="n">17+</div><div class="l">SITIOS EN LA RED</div></div>
+    <div class="kpi"><div class="n">~20K</div><div class="l">ANUNCIOS RASTREADOS</div></div>
+    <div class="kpi"><div class="n">10</div><div class="l">IDIOMAS OBJETIVO</div></div>
+    <div class="kpi"><div class="n">1302</div><div class="l">REGLAS DE CLOAKING</div></div>
   </div>
 
-  <h2><span class="n">03</span> Hallazgos clave</h2>
-  <ul>
-    <li><strong>Páginas-cebo ocultas:</strong> landings <code>/g/</code> fuera del sitemap, servidas con cloaking.</li>
-    <li><strong>Monetización:</strong> Google AdSense inyectado en runtime por un wrapper por-dominio.</li>
-    <li><strong>Backend del operador ("High Stakes"):</strong> subdominios de compra de anuncios, arbitraje, RSOC y facturación, revelados vía CT.</li>
-    <li><strong>El anunciante:</strong> una empresa fachada verificada por Google (capital simbólico) comprando ~20.000 anuncios.</li>
-    <li><strong>Google en evidencia:</strong> verifica al anunciante, cobra por los anuncios y re-monetiza las landings con AdSense.</li>
-  </ul>
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2 class="sec-title">El problema</h2></div>
+    <p>Un sitio (<span class="muted">s2earch.io</span>) se anunciaba como plataforma para
+    "ganar dinero viendo videos". No existía ningún mecanismo de pago: era una granja de
+    contenido <b>Made-For-Advertising</b> que compra tráfico con anuncios engañosos y lo
+    monetiza con Google AdSense. El usuario no gana — el usuario es el producto.</p>
+  </section>
 
-  <figure><img src="assets/img/caso/ocultas.png" alt="Páginas ocultas (cloaking)">
-    <figcaption>// las páginas-cebo no figuran en el sitemap pero responden 200 — cloaking</figcaption></figure>
-  <figure><img src="assets/img/caso/backend.png" alt="Backend del operador vía Certificate Transparency">
-    <figcaption>// backend del operador reconstruido desde Certificate Transparency</figcaption></figure>
-  <figure><img src="assets/img/caso/ofuscado.png" alt="Wrapper de anuncios ofuscado">
-    <figcaption>// el cargador de anuncios, ofuscado — confiesa 1302 reglas de cloaking y "adscore: on"</figcaption></figure>
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2 class="sec-title">Método · OSINT</h2></div>
+    <div class="grid2">
+      <div class="mbox"><h3>Infraestructura</h3><p>WHOIS/RDAP, DNS, <b>Certificate Transparency</b> y urlscan para mapear los dominios hermanos y el backend del operador.</p></div>
+      <div class="mbox"><h3>Ingeniería inversa</h3><p>Análisis del <b>wrapper de anuncios ofuscado</b>: endpoints de cloaking, detección de bots (Adscore) y las 1302 reglas.</p></div>
+      <div class="mbox"><h3>Ad Intelligence</h3><p><b>Google Ads Transparency Center</b> para identificar al anunciante verificado y sus campañas de video activas.</p></div>
+      <div class="mbox"><h3>Entity resolution</h3><p>Del dominio anónimo → anunciante verificado → empresa registrada (registro mercantil público).</p></div>
+    </div>
+  </section>
 
-  <h2><span class="n">04</span> Resultado</h2>
-  <div class="box g"><p>Operación documentada de punta a punta y <strong>reportada de forma
-  responsable</strong> a Google (AdSense/Ads), Cloudflare, el registrador y las autoridades
-  competentes, con la evidencia y los indicadores para su takedown.</p></div>
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2 class="sec-title">Hallazgos</h2></div>
+    <ul>
+      <li><b>Páginas-cebo ocultas:</b> landings <code>/g/</code> fuera del sitemap, servidas con cloaking.</li>
+      <li><b>Monetización:</b> Google AdSense inyectado en runtime por un wrapper por-dominio.</li>
+      <li><b>Backend del operador ("High Stakes"):</b> subdominios de compra de anuncios, arbitraje, RSOC y facturación, revelados vía Certificate Transparency.</li>
+      <li><b>El anunciante:</b> una empresa fachada verificada por Google (capital simbólico) comprando ~20.000 anuncios.</li>
+      <li><b>Google en evidencia:</b> verifica al anunciante, cobra por los anuncios y re-monetiza las landings con AdSense.</li>
+    </ul>
 
-  <h2><span class="n">05</span> Skills demostrados</h2>
-  <div class="skills">
-    <span class="skill"><b>OSINT</b> / investigación</span>
-    <span class="skill"><b>Threat Intelligence</b></span>
-    <span class="skill"><b>Anti-fraude</b> / ad-fraud</span>
-    <span class="skill"><b>Entity resolution</b></span>
-    <span class="skill"><b>Reversing</b> (JS ofuscado)</span>
-    <span class="skill">Certificate Transparency · DNS · RDAP</span>
-    <span class="skill">Responsible disclosure</span>
-    <span class="skill">OPSEC · Tor</span>
-  </div>
+    <div class="win">
+      <div class="win-bar"><span class="name">cloaking.log</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <img src="assets/img/caso/ocultas.png" alt="Páginas ocultas (cloaking)">
+    </div>
+    <figcaption>// las páginas-cebo no figuran en el sitemap pero responden 200 — cloaking</figcaption>
+
+    <div class="win">
+      <div class="win-bar"><span class="name">backend_ct.log</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <img src="assets/img/caso/backend.png" alt="Backend del operador vía CT">
+    </div>
+    <figcaption>// backend del operador reconstruido desde Certificate Transparency</figcaption>
+
+    <div class="win">
+      <div class="win-bar"><span class="name">wrapper.min.js</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <img src="assets/img/caso/ofuscado.png" alt="Wrapper de anuncios ofuscado">
+    </div>
+    <figcaption>// el cargador de anuncios, ofuscado — confiesa 1302 reglas de cloaking y "adscore: on"</figcaption>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2 class="sec-title">Resultado</h2></div>
+    <div class="hl"><span class="tag ok">REPORTADO</span>
+      <p>Operación documentada de punta a punta y <b>reportada de forma responsable</b> a
+      Google (AdSense/Ads), Cloudflare, el registrador y las autoridades competentes, con la
+      evidencia e indicadores para su takedown.</p></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2 class="sec-title">Skills</h2></div>
+    <div class="skills">
+      <span class="skill"><b>OSINT</b></span>
+      <span class="skill"><b>Threat Intelligence</b></span>
+      <span class="skill"><b>Anti-fraude</b></span>
+      <span class="skill"><b>Entity Resolution</b></span>
+      <span class="skill"><b>Reversing</b> (JS ofuscado)</span>
+      <span class="skill">Certificate Transparency · DNS · RDAP</span>
+      <span class="skill">Responsible Disclosure</span>
+      <span class="skill">OPSEC · Tor</span>
+    </div>
+    <div style="margin-top:28px"><a class="btn solid" href="index.html">← VOLVER AL PORTAFOLIO</a></div>
+  </section>
 
   <div class="disc">
-    Nota ética: investigación realizada con <strong>fuentes públicas</strong> y reconocimiento
-    pasivo. Los datos personales del responsable fueron <strong>redactados</strong> en esta
-    versión pública; el enfoque es la metodología y la estructura del esquema, no la exposición
-    de individuos. Divulgación responsable: reportado a las plataformas y autoridades antes de publicar.
+    Nota ética: investigación con fuentes públicas y reconocimiento pasivo. Los datos
+    personales del responsable fueron redactados en esta versión pública; el foco es la
+    metodología y la estructura del esquema, no la exposición de individuos. Divulgación
+    responsable: reportado a plataformas y autoridades antes de publicar.
   </div>
 </div>
 </body>
