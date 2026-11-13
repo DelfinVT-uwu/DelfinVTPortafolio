@@ -12,7 +12,7 @@
 <link rel="preload" as="image" href="assets/img/avatar.webp" type="image/webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;700&family=Caveat:wght@600&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;700&family=Caveat:wght@600&family=Permanent+Marker&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --cobalt:#1f3df0;
@@ -448,22 +448,27 @@
   .hv-hero{position:relative;z-index:2;width:100%;overflow:hidden;
     height:min(calc(100vh - var(--mq)),56.25vw);height:min(calc(100svh - var(--mq)),56.25vw);
     background:
-      linear-gradient(rgba(31,61,240,.07) 1px,transparent 1px) 0 0/36px 36px,
-      linear-gradient(90deg,rgba(31,61,240,.07) 1px,transparent 1px) 0 0/36px 36px,
-      var(--sky)}
+      radial-gradient(60% 85% at 30% 50%,rgba(123,47,247,.30),transparent 70%),
+      radial-gradient(40% 60% at 84% 40%,rgba(34,211,238,.10),transparent 70%),
+      linear-gradient(rgba(120,140,255,.10) 1px,transparent 1px) 0 0/36px 36px,
+      linear-gradient(90deg,rgba(120,140,255,.10) 1px,transparent 1px) 0 0/36px 36px,
+      #0b0f19}
   .hv-stage{position:absolute;left:50%;top:0;transform:translateX(-50%);aspect-ratio:16/9;
     width:min(100vw,calc((100vh - var(--mq))*1.7778));
     width:min(100vw,calc((100svh - var(--mq))*1.7778));container-type:inline-size}
 
   /* avatar tipo pegatina: se "pega" al entrar, flota y se despega al pasar el mouse */
   .hv-av{position:absolute;z-index:2;left:-14%;top:0;width:100%;height:100%;
-    transform-origin:55% 90%;animation:wob 7s ease-in-out 1.6s infinite}
+    transform-origin:55% 90%;animation:wob 7s ease-in-out 1.6s infinite;isolation:isolate}
+  .hv-av::before{content:"";position:absolute;z-index:-1;left:22%;top:6%;width:56%;height:90%;
+    background:radial-gradient(closest-side,rgba(123,47,247,.65),rgba(34,211,238,.14) 62%,transparent 78%);
+    filter:blur(28px)}
   .hv-av img{width:100%;height:100%;object-fit:contain;
-    filter:drop-shadow(4px 6px 0 rgba(12,19,48,.22)) drop-shadow(0 14px 22px rgba(12,19,48,.2));
+    filter:drop-shadow(0 0 22px rgba(123,47,247,.6)) drop-shadow(0 16px 24px rgba(0,0,0,.45));
     transition:transform .5s cubic-bezier(.34,1.56,.64,1),filter .4s;
     animation:stickIn .95s cubic-bezier(.34,1.56,.64,1) .1s backwards}
   .hv-av img:hover{transform:rotate(-1.4deg) scale(1.015) translate(-.5%,-.8%);
-    filter:drop-shadow(10px 16px 0 rgba(123,47,247,.3)) drop-shadow(0 22px 30px rgba(12,19,48,.25))}
+    filter:drop-shadow(0 0 38px rgba(34,211,238,.6)) drop-shadow(0 22px 30px rgba(0,0,0,.5))}
   @keyframes stickIn{
     0%{opacity:0;transform:translate(-5%,-9%) scale(1.22) rotate(-8deg)}
     60%{opacity:1;transform:translate(0,0) scale(.975) rotate(1.2deg)}
@@ -472,8 +477,8 @@
 
   /* rombo dividido en 4: cada rombo se mueve entre 4 posiciones (data-s) */
   .hv-dia{position:absolute;z-index:3;left:53.9%;top:1.9%;width:45.3%;aspect-ratio:1;
-    container-type:inline-size}
-  .hv-d{position:absolute;width:34.4%;aspect-ratio:1;border:2px solid var(--ink);cursor:pointer;
+    container-type:inline-size;animation:hvfloat 7s ease-in-out 1.8s infinite}
+  .hv-d{position:absolute;width:34.4%;aspect-ratio:1;border:2px solid #e9e4ff;cursor:pointer;box-shadow:0 0 26px rgba(123,47,247,.3);
     left:50%;top:25%;transform:translate(-50%,-50%) rotate(45deg);
     transition:left .85s cubic-bezier(.65,0,.35,1),top .85s cubic-bezier(.65,0,.35,1),
       transform .35s cubic-bezier(.34,1.56,.64,1),filter .25s;
@@ -489,32 +494,47 @@
   .hv-d:hover{transform:translate(-50%,-50%) rotate(45deg) scale(1.06);filter:brightness(1.08);z-index:6}
   .hv-d span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     transform:rotate(-45deg);white-space:nowrap;text-align:center;pointer-events:none;
-    font-family:var(--hand);font-weight:400;font-size:var(--fs,3.4cqw);text-transform:uppercase}
-  .hv-d.c1{background:var(--yellow);color:var(--ink);--fs:3.1cqw;animation-delay:.55s}
-  .hv-d.c2{background:var(--purple);color:#fff;--fs:3.5cqw;animation-delay:.7s}
-  .hv-d.c3{background:var(--ink);color:#fff;--fs:5.4cqw;animation-delay:.85s}
-  .hv-d.c4{background:#fff;color:var(--purple);animation-delay:1s}
-  .hv-d.c4 span{font-family:'Caveat',cursive;font-weight:600;font-size:6.4cqw;text-transform:none}
+    font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-weight:800;letter-spacing:.06em;font-size:3.1cqw;text-transform:uppercase}
+  .hv-d.c1{background:var(--yellow);color:var(--ink);animation-delay:.55s;--gl:rgba(255,210,63,.65)}
+  .hv-d.c2{background:var(--purple);color:#fff;animation-delay:.7s}
+  .hv-d.c3{background:var(--ink);color:#fff;animation-delay:.85s;--gl:rgba(123,47,247,.8)}
+  .hv-d.c4{background:#fff;color:var(--ink);animation-delay:1s}
+  .hv-d.c1::after,.hv-d.c3::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:.15;
+    box-shadow:0 0 36px 6px var(--gl);animation:hvpulse 3.4s ease-in-out 1.6s infinite}
 
   /* DELFIN se "escribe" en diagonal sobre el borde superior izquierdo del rombo */
   .hv-delfin{position:absolute;z-index:4;left:17%;top:25%;margin:0;
     font-family:var(--hand);font-weight:400;line-height:.9;white-space:nowrap;
-    color:var(--ink);font-size:12cqw;text-shadow:4px 4px 0 rgba(123,47,247,.22);
+    color:#fff;font-size:12cqw;text-shadow:0 0 30px rgba(123,47,247,.65),4px 4px 0 rgba(123,47,247,.5);
     transform:translate(-50%,-50%) rotate(-45deg);
     animation:write 1.1s cubic-bezier(.65,0,.35,1) .35s backwards}
-  .hv-delfin b{color:var(--purple);font-weight:400}
+  .hv-delfin b{color:#9d5cff;font-weight:400}
   @keyframes write{from{clip-path:inset(-25% 100% -25% 0)}to{clip-path:inset(-25% -6% -25% 0)}}
 
-  .hv-cue{position:absolute;z-index:6;right:2.2%;bottom:3.4%;display:flex;align-items:center;gap:8px;
-    font-family:var(--hand);font-size:clamp(16px,1.5vw,26px);color:var(--ink)}
-  .hv-cue i{font-style:normal;display:inline-block;animation:floaty 1.6s ease-in-out infinite}
+  .hv-cue{position:absolute;z-index:6;right:2.2%;bottom:3.4%;display:flex;align-items:center;gap:14px;
+    animation:slideUp .7s ease-out 1.3s backwards}
+  .hv-scroll{font:700 clamp(10px,.8vw,13px)/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#aab4d4}
+  .hv-scroll i{font-style:normal;display:inline-block;animation:hvbob 1.6s ease-in-out infinite}
+  .hv-btn{font:800 clamp(11px,.9vw,15px)/1 'JetBrains Mono',monospace;letter-spacing:.08em;
+    padding:.95em 1.5em;text-decoration:none;border:2px solid;
+    transition:transform .2s,background .2s,color .2s}
+  .hv-btn:hover{transform:translateY(-3px)}
+  .hv-btn.p{background:var(--yellow);color:var(--ink);border-color:var(--yellow);box-shadow:0 0 22px rgba(255,210,63,.45)}
+  .hv-btn.g{background:rgba(34,211,238,.06);color:#67e8f9;border-color:#22d3ee;
+    box-shadow:0 0 18px rgba(34,211,238,.35),inset 0 0 14px rgba(34,211,238,.15)}
+  .hv-btn.g:hover{background:#22d3ee;color:var(--ink)}
+  @keyframes slideUp{from{opacity:0;transform:translateY(26px)}}
+  @keyframes hvbob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  @keyframes hvfloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-1.1%) rotate(.5deg)}}
+  @keyframes hvpulse{0%,100%{opacity:.15}50%{opacity:.9}}
 
   /* cinta que asoma al fondo de la primera pantalla */
-  .hv-marq{position:relative;z-index:3;height:var(--mq);background:var(--ink);color:#fff;
-    overflow:hidden;display:flex;align-items:center;border-block:2px solid var(--ink)}
+  .hv-marq{position:relative;z-index:3;height:var(--mq);background:var(--yellow);color:var(--ink);
+    overflow:hidden;display:flex;align-items:center;border-block:2px solid var(--ink);
+    animation:slideUp .7s ease-out 1.3s backwards}
   .hv-track{display:flex;flex:none;width:max-content;animation:marq 30s linear infinite}
   .hv-track span{font-family:var(--hand);font-size:22px;letter-spacing:.04em;padding:0 22px;white-space:nowrap}
-  .hv-track span:nth-child(even){color:var(--yellow)}
+  .hv-track span:nth-child(even){color:var(--purple)}
   @keyframes marq{to{transform:translateX(-50%)}}
 
   .hv-intro{padding-top:46px}
@@ -523,7 +543,7 @@
   .hv-lead span{color:var(--purple)}
 
   @media(prefers-reduced-motion:reduce){
-    .hv-av,.hv-av img,.hv-d,.hv-delfin,.hv-track,.hv-cue i{animation:none!important}}
+    .hv-av,.hv-av img,.hv-dia,.hv-d,.hv-d::after,.hv-delfin,.hv-track,.hv-marq,.hv-cue,.hv-scroll i{animation:none!important}}
 
   /* todo lo demás, acomodado abajo del board */
   .hv-below{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:26px;
@@ -550,7 +570,8 @@
     .hv-av{position:relative;left:auto;width:132%;height:auto;margin-left:-34%}
     .hv-av img{height:auto}
     .hv-dia{position:relative;left:auto;top:auto;width:min(74%,400px);align-self:flex-end;margin:36px 8% 0 0}
-    .hv-cue{display:none}
+    .hv-cue{position:relative;right:auto;bottom:auto;margin:24px 8% 0;flex-wrap:wrap}
+    .hv-scroll{display:none}
     .hv-below{grid-template-columns:1fr;gap:20px;align-items:start;padding-top:24px}
   }
 
@@ -573,7 +594,11 @@
       <div class="hv-d c4" data-s="3"><span>Designer</span></div>
     </div>
   </div>
-  <div class="hv-cue" aria-hidden="true">scroll <i>↓</i></div>
+  <div class="hv-cue">
+    <span class="hv-scroll" aria-hidden="true">SCROLL <i>↓</i></span>
+    <a class="hv-btn p" href="#proyectos">VER PROYECTOS →</a>
+    <a class="hv-btn g" href="#contacto">CONTACTO</a>
+  </div>
 </header>
 
 <div class="hv-marq" aria-hidden="true"><div class="hv-track"><span>PENTESTING</span><span>✦</span><span>RED TEAM</span><span>✦</span><span>BUG BOUNTY</span><span>✦</span><span>INGENIERÍA INVERSA</span><span>✦</span><span>LINUX</span><span>✦</span><span>XR</span><span>✦</span><span>WEB</span><span>✦</span><span>PENTESTING</span><span>✦</span><span>RED TEAM</span><span>✦</span><span>BUG BOUNTY</span><span>✦</span><span>INGENIERÍA INVERSA</span><span>✦</span><span>LINUX</span><span>✦</span><span>XR</span><span>✦</span><span>WEB</span><span>✦</span></div></div>
